@@ -1,9 +1,11 @@
 import requests
 from lxml import objectify
+from gi.repository import GdkPixbuf
 
 USER_ID_URL = "http://www.ragechill.com/radio/getUserID"
 SONG_GET_URL = "http://www.ragechill.com/radio/getSong"
 REPOSITORY_URL = "https://s3.amazonaws.com/ragechill/%s"
+SONG_INFO_URL = "http://www.ragechill.com/backend/getModal/"
 
 
 class RageChill:
@@ -13,7 +15,7 @@ class RageChill:
 
     def get_user(self):
         r = requests.get(USER_ID_URL)
-        if(r.status_code == 200):
+        if r.status_code is 200:
             user = objectify.fromstring(r.text.encode("UTF-8"))
             return user.userID
         else:
@@ -25,9 +27,18 @@ class RageChill:
                 'curSong': curSong,
                 'web': 'true'}
         r = requests.get(SONG_GET_URL, params=payload)
-        if(r.status_code == 200):
+        if r.status_code is 200:
             song_xml = objectify.fromstring(r.text.encode("UTF-8"))
             return song_xml.song
+
+    def get_song_info(self, postID=0, songID=0):
+        payload = {'postID': postID,
+                'songID': songID,
+                'web': 'true'}
+        r = requests.get(SONG_INFO_URL, params=payload)
+        if r.status_code is 200:
+            song_xml = objectify.fromstring(r.text.encode("UTF-8"))
+            return song_xml
 
     def get_song_stream(self, song_id=None):
         url = None
@@ -45,6 +56,14 @@ class RageChill:
         else:
             url = REPOSITORY_URL % image
         return url
+
+    def get_image_pixbuf(self, image=None):
+        url = self.get_image_url(image)
+        r = requests.get(url)
+        loader = GdkPixbuf.PixbufLoader()
+        loader.write(r.content)
+        loader.close()
+        return loader.get_pixbuf()
 
 
 class CommunicationException(Exception):
