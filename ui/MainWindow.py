@@ -27,8 +27,6 @@ class MainWindow:
         self.searchbar.connect('text-changed-pause', self.onSearchExecuted)
         self.slider = builder.get_object('scale1')
         self.playbutton = builder.get_object('toolbutton4')
-        self.clear = builder.get_object('toolbutton6')
-        self.clear.connect('clicked', self.remove_welcome)
         self.search_position_holder = builder.get_object("box2")
         self.add_search(self.searchbar)
         self.toolbar.insert(self.create_appmenu(), -1)
@@ -63,13 +61,13 @@ class MainWindow:
 
         renderer_text = Gtk.CellRendererText()
         renderer_text.set_property('font-desc',
-                                   Pango.FontDescription('Droid Sans bold 16'))
+                                   Pango.FontDescription('Droid Sans bold 13'))
         column_text = Gtk.TreeViewColumn("Artist", renderer_text, text=1)
         self.playlistview.append_column(column_text)
 
         renderer_text = Gtk.CellRendererText()
         renderer_text.set_property('font-desc',
-                                   Pango.FontDescription('Droid Sans italic 13'))
+                                   Pango.FontDescription('Droid Sans italic 10'))
         column_text = Gtk.TreeViewColumn("Title", renderer_text, text=2)
         self.playlistview.append_column(column_text)
 
@@ -156,10 +154,15 @@ class MainWindow:
         test = "%.1f" % sender.get_value()
         if test is not self.rage_level:
             self.rage_level = test
-            self.onPlayClicked(sender, None, True)
+            self.playing = False
+            self.playbin.set_state(gst.STATE_NULL)
+            self.onPlayClicked(sender, None)
 
     def onPlayClicked(self, sender, data=None, go=False):
         if self.playing == False:
+            if self.welcome_removed is 0:
+                self.remove_welcome(sender, data)
+                self.welcome_removed = 1
             song = self.client.get_song(rageLevel=self.rage_level)
             image = self.client.get_image_pixbuf(song.post.image).scale_simple(72,
                     72,
@@ -187,7 +190,6 @@ class MainWindow:
             
 
     def onNextClicked(self, sender, data=None):
-        print "Next Button clicked"
-
-    def onVolumeChanged(self, sender, data=None):
-        print "Volume changed to: %f" % data
+        self.playbin.set_state(gst.STATE_NULL)
+        self.playing = False
+        self.onPlayClicked(sender, None, True)
