@@ -87,7 +87,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">toolbutton4</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-play</property>
+                <property name="icon_name">media-playback-start</property>
                 <signal name="clicked" handler="onPlayClicked" swapped="no"/>
               </object>
               <packing>

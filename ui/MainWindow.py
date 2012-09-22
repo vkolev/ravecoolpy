@@ -4,10 +4,14 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository import Pango
 from pyragechill import ragechill
 import lxml
+import InfoDialog
+import gst
+
 
 class MainWindow:
 
     def __init__(self, path):
+        self.playing = False
         self.client = ragechill.RageChill()
         self.welcome_removed = 0
         self.path = path
@@ -22,6 +26,7 @@ class MainWindow:
         self.searchbar.set_pause_delay(500)
         self.searchbar.connect('text-changed-pause', self.onSearchExecuted)
         self.slider = builder.get_object('scale1')
+        self.playbutton = builder.get_object('toolbutton4')
         self.clear = builder.get_object('toolbutton6')
         self.clear.connect('clicked', self.remove_welcome)
         self.search_position_holder = builder.get_object("box2")
@@ -34,6 +39,11 @@ class MainWindow:
         self.playlistview.set_headers_visible(False)
         self.playlistview.connect('row-activated', self.song_info)
         self.setup_playlist()
+        self.playbin = gst.element_factory_make("playbin2",
+                                                "player")
+        self.bus = self.playbin.get_bus()
+        self.bus.add_signal_watch()
+        self.bus.connect("message", self.on_player_message)
 
     def create_welcome(self):
         self.welcome = Granite.WidgetsWelcome.new("RaveCool",
@@ -52,12 +62,14 @@ class MainWindow:
         self.playlistview.append_column(column_pixbuf)
 
         renderer_text = Gtk.CellRendererText()
-        renderer_text.set_property('font-desc', Pango.FontDescription('Droid Sans bold 16'))
+        renderer_text.set_property('font-desc',
+                                   Pango.FontDescription('Droid Sans bold 16'))
         column_text = Gtk.TreeViewColumn("Artist", renderer_text, text=1)
         self.playlistview.append_column(column_text)
 
         renderer_text = Gtk.CellRendererText()
-        renderer_text.set_property('font-desc', Pango.FontDescription('Droid Sans italic 13'))
+        renderer_text.set_property('font-desc',
+                                   Pango.FontDescription('Droid Sans italic 13'))
         column_text = Gtk.TreeViewColumn("Title", renderer_text, text=2)
         self.playlistview.append_column(column_text)
 
@@ -65,18 +77,7 @@ class MainWindow:
         iter = self.playlist.get_iter(path)
         postID = self.playlist[iter][3]
         songID = self.playlist[iter][4]
-        song = self.client.get_song_info(postID, songID)
-        info_dialog = Granite.WidgetsLightWindow.new("%s by %s" % (song.title, song.artist))
-        info_dialog.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        box = Gtk.VBox()
-        box.pack_start(Gtk.Image().new_from_pixbuf(self.client.get_image_pixbuf(song.image)),
-                False, False, 0)
-        box.pack_start(Gtk.Label("Description: %s" % str(song.description)),
-                False, False, 0)
-        box.pack_start(Gtk.Label("RageLevel: %s" % str(song.rageLevel)),
-                False, False, 0)
-        info_dialog.add(box)
-        info_dialog.show_all()
+        InfoDialog.InfoDialog(postID, songID)
 
     def show_all(self):
         self.window.show_all()
@@ -110,6 +111,16 @@ class MainWindow:
         menu.append(quit_item)
         appmenu = Granite.WidgetsAppMenu.new(menu)
         return appmenu
+    
+    def on_player_message(self, bus, message):
+        t = message.type
+        if t == gst.MESSAGE_EOS:
+            self.playbin.set_state(gst.STATE_NULL)
+            self.playing = False
+            self.onPlayClicked(None, None, True)
+        elif t == gst.MESSAGE_ERROR:
+            self.playing = False
+            self.playbin.set_state(gst.STATE_NULL)
 
     def onShowAbout(self, sender, data=None):
         about = Granite.WidgetsAboutDialog.new()
@@ -142,19 +153,38 @@ class MainWindow:
         print sender.get_text()
 
     def onRageChange(self, sender, data=None):
-        self.rage_level = "%.1f" % sender.get_value()
-        self.onPlayClicked(sender)
+        test = "%.1f" % sender.get_value()
+        if test is not self.rage_level:
+            self.rage_level = test
+            self.onPlayClicked(sender, None, True)
 
-    def onPlayClicked(self, sender, data=None):
-        song = self.client.get_song(rageLevel=self.rage_level)
-        image = self.client.get_image_pixbuf(song.post.image).scale_simple(72,
-                72,
-                GdkPixbuf.InterpType.NEAREST)
-        self.playlist.prepend([image,
-            str(song.post.title),
-            str(song.post.artist),
-            str(song.post.postID),
-            str(song.post.songID)])
+    def onPlayClicked(self, sender, data=None, go=False):
+        if self.playing == False:
+            song = self.client.get_song(rageLevel=self.rage_level)
+            image = self.client.get_image_pixbuf(song.post.image).scale_simple(72,
+                    72,
+                    GdkPixbuf.InterpType.NEAREST)
+            self.playlist.prepend([image,
+                str(song.post.title),
+                str(song.post.artist),
+                str(song.post.postID),
+                str(song.post.songID)])
+            self.playbin.set_property('uri',
+                                      self.client.get_song_stream(song.post.songID))
+            self.playbin.set_state(gst.STATE_PLAYING)
+            self.window.set_title("%s by %s" % (song.post.title, song.post.artist))
+            self.playbutton.set_icon_name("media-playback-stop")
+            self.playing = True
+        else:
+            if go == True:
+                self.playbin.set_state(gst.STATE_NULL)
+                self.onPlayClicked(sender, None, True)
+            else:
+                self.playbin.set_state(gst.STATE_NULL)
+                self.playing = False
+                self.playbutton.set_icon_name("media-playback-start")
+                self.window.set_title("RaveCool")
+            
 
     def onNextClicked(self, sender, data=None):
         print "Next Button clicked"
