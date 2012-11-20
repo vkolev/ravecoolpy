@@ -45,10 +45,10 @@ class MainWindow:
 
     def create_welcome(self):
         self.welcome = Granite.WidgetsWelcome.new("RaveCool",
-                        "Discover the endless music experience...")
+                                                  "Discover the endless music experience...")
         self.welcome.append("media-playback-start",
-                        "Start",
-                        "Start exploring the music")
+                            "Start",
+                            "Start exploring the music")
         self.welcome.connect('activated', self.remove_welcome)
         return self.welcome
 
@@ -109,7 +109,7 @@ class MainWindow:
         menu.append(quit_item)
         appmenu = Granite.WidgetsAppMenu.new(menu)
         return appmenu
-    
+
     def on_player_message(self, bus, message):
         t = message.type
         if t == gst.MESSAGE_EOS:
@@ -123,13 +123,14 @@ class MainWindow:
     def onShowAbout(self, sender, data=None):
         about = Granite.WidgetsAboutDialog.new()
         about.set_program_name("RaveCool")
-        about.set_comments("""Desktop Application for endless music expirience""")
+        about.set_comments(
+            """Desktop Application for endless music expirience""")
         about.set_website("http://ravecool.bultux.org")
         about.set_help("http://ravecool.bultux.org/help")
         about.set_translate("http://ravecool.bultux.org/translate")
         about.set_bug("http://ravecool.bultux.org/bugs")
         about.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(self.path
-            + "/data/icons/ravecool_128.png", 128, 128))
+                                                              + "/data/icons/ravecool_128.png", 128, 128))
         about.set_website_label("RaveCool @ BulTux.Org")
         about.set_version("1.0a")
         about.run()
@@ -164,18 +165,20 @@ class MainWindow:
                 self.remove_welcome(sender, data)
                 self.welcome_removed = 1
             song = self.client.get_song(rageLevel=self.rage_level)
-            image = self.client.get_image_pixbuf(song.post.image).scale_simple(72,
-                    72,
-                    GdkPixbuf.InterpType.NEAREST)
+            image = self.client.get_image_pixbuf(
+                song.post.image).scale_simple(72,
+                                              72,
+                                              GdkPixbuf.InterpType.NEAREST)
             self.playlist.prepend([image,
-                str(song.post.title),
-                str(song.post.artist),
-                str(song.post.postID),
-                str(song.post.songID)])
+                                   str(song.post.title),
+                                   str(song.post.artist),
+                                   str(song.post.postID),
+                                   str(song.post.songID)])
             self.playbin.set_property('uri',
                                       self.client.get_song_stream(song.post.songID))
             self.playbin.set_state(gst.STATE_PLAYING)
-            self.window.set_title("%s by %s" % (song.post.title, song.post.artist))
+            self.window.set_title(
+                "%s by %s" % (song.post.title, song.post.artist))
             self.playbutton.set_icon_name("media-playback-stop")
             self.playing = True
         else:
@@ -187,7 +190,6 @@ class MainWindow:
                 self.playing = False
                 self.playbutton.set_icon_name("media-playback-start")
                 self.window.set_title("RaveCool")
-            
 
     def onNextClicked(self, sender, data=None):
         self.playbin.set_state(gst.STATE_NULL)
