@@ -2,6 +2,7 @@
 
 from gi.repository import Gtk
 from ui.MainWindow import MainWindow
+from ui.sound_menu import SoundMenuControls
 import os
 
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))

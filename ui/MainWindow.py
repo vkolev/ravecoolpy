@@ -3,6 +3,7 @@ from gi.repository import Granite
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository import Pango
 from pyragechill import ragechill
+import HTMLParser
 import lxml
 import InfoDialog
 import gst
@@ -132,6 +133,7 @@ class MainWindow:
         about.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(self.path
                                                               + "/data/icons/ravecool_128.png", 128, 128))
         about.set_website_label("RaveCool @ BulTux.Org")
+        about.set_authors("Vladimir Kolev <vladimir.r.kolev@gmail.com>,", 0)
         about.set_version("1.0a")
         about.run()
         about.destroy()
@@ -170,15 +172,16 @@ class MainWindow:
                                               72,
                                               GdkPixbuf.InterpType.NEAREST)
             self.playlist.prepend([image,
-                                   str(song.post.title),
-                                   str(song.post.artist),
+                                   HTMLParser.HTMLParser().unescape(str(song.post.title)),
+                                   HTMLParser.HTMLParser().unescape(str(song.post.artist)),
                                    str(song.post.postID),
                                    str(song.post.songID)])
             self.playbin.set_property('uri',
                                       self.client.get_song_stream(song.post.songID))
             self.playbin.set_state(gst.STATE_PLAYING)
             self.window.set_title(
-                "%s by %s" % (song.post.title, song.post.artist))
+                "%s by %s" % (HTMLParser.HTMLParser().unescape(song.post.title),
+                    HTMLParser.HTMLParser().unescape(song.post.artist)))
             self.playbutton.set_icon_name("media-playback-stop")
             self.playing = True
         else:
