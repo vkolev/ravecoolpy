@@ -6,6 +6,6 @@ to play music from `rahechill.com <http://ragechill.com>`_ on your desktop witho
 
 There is no option to download any files and it is not planned to be implemented ever.
 
-This app was created to explore the options of developing python GUI applications for the `elementaryOS <http://elementaryos.org`_.
+This app was created to explore the options of developing python GUI applications for the `elementaryOS <http://elementaryos.org>`_.
 
 Feel free to comment or contribute.
