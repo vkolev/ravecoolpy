@@ -131,10 +131,10 @@ class MainWindow:
         about.set_program_name("RaveCool")
         about.set_comments(
             """Desktop Application for endless music expirience""")
-        about.set_website("http://ravecool.bultux.org")
-        about.set_help("http://ravecool.bultux.org/help")
-        about.set_translate("http://ravecool.bultux.org/translate")
-        about.set_bug("http://ravecool.bultux.org/bugs")
+        about.set_website("http://github.com/vkolev/ravecoolpy")
+        about.set_help("http://github.com/vkolev/ravecoolpy/")
+        about.set_translate("http://github.com/vkolev/ravecoolpy/wiki")
+        about.set_bug("https://github.com/vkolev/ravecoolpy/issues")
         about.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_size(self.path
                                                               + "/data/icons/ravecool_128.png", 128, 128))
         about.set_website_label("RaveCool @ BulTux.Org")
