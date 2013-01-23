@@ -9,3 +9,8 @@ There is no option to download any files and it is not planned to be implemented
 This app was created to explore the options of developing python GUI applications for the `elementaryOS <http://elementaryos.org>`_.
 
 Feel free to comment or contribute.
+
+Screenshot
+----------
+
+.. image:: http://i.imgur.com/mV29tR3.png
