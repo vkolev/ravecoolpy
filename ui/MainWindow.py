@@ -1,3 +1,4 @@
+import gi
 from gi.repository import Gtk
 from gi.repository import Granite
 from gi.repository import Gdk, GdkPixbuf
@@ -6,7 +7,11 @@ from pyragechill import ragechill
 import HTMLParser
 import lxml
 import InfoDialog
-import gst
+try:
+    gi.require_version('Gst', '1.0')
+    from gi.repository import Gst
+except:
+    pass
 
 
 class MainWindow:
@@ -14,6 +19,7 @@ class MainWindow:
     def __init__(self, path):
         self.playing = False
         self.client = ragechill.RageChill()
+        Gst.init(None)
         self.welcome_removed = 0
         self.path = path
         self.rage_level = "2.5"
@@ -38,8 +44,7 @@ class MainWindow:
         self.playlistview.set_headers_visible(False)
         self.playlistview.connect('row-activated', self.song_info)
         self.setup_playlist()
-        self.playbin = gst.element_factory_make("playbin2",
-                                                "player")
+        self.playbin = Gst.ElementFactory.make("playbin", None)
         self.bus = self.playbin.get_bus()
         self.bus.add_signal_watch()
         self.bus.connect("message", self.on_player_message)
@@ -113,13 +118,13 @@ class MainWindow:
 
     def on_player_message(self, bus, message):
         t = message.type
-        if t == gst.MESSAGE_EOS:
-            self.playbin.set_state(gst.STATE_NULL)
+        if t == Gst.MessageType.EOS:
+            self.playbin.set_state(Gst.State.NULL)
             self.playing = False
             self.onPlayClicked(None, None, True)
-        elif t == gst.MESSAGE_ERROR:
+        elif t == Gst.MessageType.ERROR:
             self.playing = False
-            self.playbin.set_state(gst.STATE_NULL)
+            self.playbin.set_state(Gst.State.NULL)
 
     def onShowAbout(self, sender, data=None):
         about = Granite.WidgetsAboutDialog.new()
@@ -158,7 +163,7 @@ class MainWindow:
         if test is not self.rage_level:
             self.rage_level = test
             self.playing = False
-            self.playbin.set_state(gst.STATE_NULL)
+            self.playbin.set_state(Gst.State.NULL)
             self.onPlayClicked(sender, None)
 
     def onPlayClicked(self, sender, data=None, go=False):
@@ -178,23 +183,23 @@ class MainWindow:
                                    str(song.post.songID)])
             self.playbin.set_property('uri',
                                       self.client.get_song_stream(song.post.songID))
-            self.playbin.set_state(gst.STATE_PLAYING)
+            self.playbin.set_state(Gst.State.PLAYING)
             self.window.set_title(
                 "%s by %s" % (HTMLParser.HTMLParser().unescape(song.post.title),
-                    HTMLParser.HTMLParser().unescape(song.post.artist)))
+                              HTMLParser.HTMLParser().unescape(song.post.artist)))
             self.playbutton.set_icon_name("media-playback-stop")
             self.playing = True
         else:
             if go == True:
-                self.playbin.set_state(gst.STATE_NULL)
+                self.playbin.set_state(Gst.State.NULL)
                 self.onPlayClicked(sender, None, True)
             else:
-                self.playbin.set_state(gst.STATE_NULL)
+                self.playbin.set_state(Gst.State.NULL)
                 self.playing = False
                 self.playbutton.set_icon_name("media-playback-start")
                 self.window.set_title("RaveCool")
 
     def onNextClicked(self, sender, data=None):
-        self.playbin.set_state(gst.STATE_NULL)
+        self.playbin.set_state(Gst.State.NULL)
         self.playing = False
         self.onPlayClicked(sender, None, True)

@@ -23,9 +23,9 @@ class RageChill:
 
     def get_song(self, rageLevel=2.5, curSong=0):
         payload = {'userID': self.user_id,
-                'rageLevel': rageLevel,
-                'curSong': curSong,
-                'web': 'true'}
+                   'rageLevel': rageLevel,
+                   'curSong': curSong,
+                   'web': 'true'}
         r = requests.get(SONG_GET_URL, params=payload)
         if r.status_code is 200:
             song_xml = objectify.fromstring(r.text.encode("UTF-8"))
@@ -33,8 +33,8 @@ class RageChill:
 
     def get_song_info(self, postID=0, songID=0):
         payload = {'postID': postID,
-                'songID': songID,
-                'web': 'true'}
+                   'songID': songID,
+                   'web': 'true'}
         r = requests.get(SONG_INFO_URL, params=payload)
         if r.status_code is 200:
             song_xml = objectify.fromstring(r.text.encode("UTF-8"))
